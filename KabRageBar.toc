@@ -1,0 +1,7 @@
+## Title: |cff3399FFKab|r Rage Bar
+## Interface: 80200
+## Author: Kab
+## Version: 1.01
+## Notes: A simple rage bar.
+
+KabRageBar.lua
