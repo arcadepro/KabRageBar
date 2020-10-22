@@ -1,15 +1,39 @@
--- change bar width and height here
-local width = 120
-local height = 26
-
--- change xpos and ypos here to the position relative to center of screen
-
--- a negative xpos goes left, a positive xpos goes right
--- a negative ypos goes down, a positive ypos goes up
+local width = 108
+local height = 25
+local state = 1
 local xpos = 0
-local ypos = -184
+local ypos = -155
+local covenant = "none" -- (none,nec,ven,kyr,fae)
+local border = "classic" -- (classic, shadowlands)
 
--- there's no need to change anything below this line
+---
+
+if border == "shadowlands" then
+	bgPath = "Interface\\Tooltips\\UI-Tooltip-Background-Maw"
+	edgePath = "Interface\\Tooltips\\UI-Tooltip-Border-Maw"
+	ypos = -154
+else
+	bgPath = "Interface\\Tooltips\\UI-Tooltip-Background"
+	edgePath = "Interface\\Tooltips\\UI-Tooltip-Border"
+	ypos = -155
+end
+
+if covenant == "nec" then
+	bdr,bdg,bdb,bda = 0.7,0.9,0.7,1	--border r,g,b,a
+	bkr,bkg,bkb,bka = 0.2,0.4,0.2,1	--background r,g,b,a
+elseif covenant == "ven" then
+	bdr,bdg,bdb,bda = 1.0,0.5,0.4,1
+	bkr,bkg,bkb,bka = 0.2,0.1,0.1,1
+elseif covenant == "kyr" then
+	bdr,bdg,bdb,bda = 0.7,0.8,1.0,1
+	bkr,bkg,bkb,bka = 0.3,0.4,0.9,1
+elseif covenant == "fae" then
+	bdr,bdg,bdb,bda = 0.6,0.5,0.9,1
+	bkr,bkg,bkb,bka = 0.3,0.1,0.3,1
+else
+	bdr,bdg,bdb,bda = 0.15,0.15,0.15,1
+	bkr,bkg,bkb,bka = 0.15,0.15,0.15,1
+end
 
 local r,g,b = 0,0,1 -- blue default
 local _,class = UnitClass("player")
@@ -36,105 +60,87 @@ if class == "ROGUE" then  r,g,b = 1,1,0 end
 --if class == "WARLOCK" then r,g,b = 0,0,1 end
 if class == "WARRIOR" then r,g,b = 1,0,0 end
 
---print(class, r,g,b)
---if class == "WARRIOR" then
-
-local f = CreateFrame("Frame","KabRageBar",UIParent)
-f:SetFrameStrata("LOW")
+local f = CreateFrame("Frame", nil, self, BackdropTemplateMixin and "BackdropTemplate")
+--f:SetFrameStrata("LOW")
 f:EnableMouse(false)
 f:EnableMouseWheel(false)
-
-f:SetBackdrop( { bgFile="Interface\\ChatFrame\\ChatFrameBackground",
-edgeFile="Interface\\Tooltips\\UI-Tooltip-Border",tile=false,tileSize=16,
-edgeSize=16,insets={left=3,right=3,top=3,bottom=3}} )
-f:SetBackdropColor(0.1,0.1,0.1)
-f:SetBackdropBorderColor(0.2,0.2,0.2)
-
 f:SetSize(width,height)
 f:SetPoint("CENTER",xpos,ypos)
 
+f:SetBackdrop({ bgFile=bgPath,
+				edgeFile=edgePath,
+				tile=false,
+				edgeSize=16,
+				insets={left=3,right=3,top=3,bottom=3}})
+
+f:SetBackdropColor(bkr,bkg,bkb,bka)
+f:SetBackdropBorderColor(bdr,bdg,bdb,bda)
+
 f.bar = f:CreateTexture(nil,"BACKGROUND",nil,1)
+f.bar:SetAlpha(0)
+f.bar:SetWidth(0)
 f.bar:SetHeight(f:GetHeight()-6)
 f.bar:SetPoint("LEFT",3,0)
 f.bar:SetTexture("Interface\\TargetingFrame\\BarFill2")
-f.bar:SetWidth(0)
 f.bar:SetVertexColor(r,g,b)
-f.bar:Hide()
 
 --f.text = f:CreateFontString(nil,"ARTWORK","NumberFont_Outline_Med")
 --f.text = f:CreateFontString(nil,"ARTWORK", "Game13Font")
 f.text = f:CreateFontString(nil,"ARTWORK")
 f.text:SetPoint("CENTER")
-f.text:SetFont("FONTS\\FRIZQT__.TTF", 13, "OUTLINE")
---f.text:SetJustifyH("CENTER")
---f.text:SetShadowOffset(1, -1)
+f.text:SetFont("FONTS\\FRIZQT__.TTF", 12, "OUTLINE")
 f.text:Show()
 
-f.elapsed = 0.133
+f.elapsed = 0.10
 
-local function clearbar()
-	f.bar:SetWidth(0)
-	f.text:SetText(format("%d",(0)))
+local function vehicleHider()
+	if OverrideActionBar:IsShown() then f:SetAlpha(0) else f:SetAlpha(1) end
+end
+
+local function hideFrame()
 	f:SetAlpha(0)
-	--f.bar:Hide()
+	state = 0
 end
 
-local function updatecolor()
---print("lol")
-		if class == "DRUID" then
-			local form = GetShapeshiftFormID()
-			if form == 1 then
-				--print("catform")
-				r,g,b = 1,1,0
-			elseif form == 5 then
-				--print("bearform")
-				r,g,b = 1,0,0
-			else
-				r,g,b = 0,0,1
-			end
-				--[[ 		if form == 2 then print("treeform") end
-					if form == 3 then print("travelform") end
-					if form == 31 then print("moonkinform") end
-					if form == 36 then print("treantform") end
-					if form == 27 then print("flightform") end
-					if form == nil then print("humanoid") end
-				--]]
-		end
+local function showFrame()
+	if OverrideActionBar:IsShown() then return end
+    f:SetAlpha(1)
+	state = 1
 end
 
+f:SetScript("OnEvent", function(self, event, name, ...)
+	if event == "UPDATE_OVERRIDE_ACTIONBAR" then
+		C_Timer.After(1.5, vehicleHider)
+	end
+end)
 
 f:SetScript("OnUpdate", function(self, elapsed)
+	if state == 0 then return end
 	self.elapsed = self.elapsed - elapsed
 	if self.elapsed > 0 then return end
-	self.elapsed = 0.133
-
+	self.elapsed = 0.10
 	local power = UnitPower("player")
 	local maxPower = UnitPowerMax("player")
 
 	if power == 0 then
 		f.text:SetText(format("%d",0))
-		--f:SetAlpha(0)
-		f.bar:Hide()
+		f.bar:SetAlpha(0)
 	elseif power == maxPower and showcapped == true then
 		f.bar:SetVertexColor(1,1,1) --white
 		f.bar:SetWidth(power*(width-6)/maxPower)
 		f.text:SetText(format("%d",power))
-		--f:SetAlpha(1)
-		f.bar:Show()
+		f.bar:SetAlpha(1)
 	else
 		f.bar:SetVertexColor(r,g,b)
 		f.bar:SetWidth(power*(width-6)/maxPower)
 		f.text:SetText(format("%d",power))
-		--f:SetAlpha(1)
-		f.bar:Show()
+		f.bar:SetAlpha(1)
 	end
 end)
 
-f:SetScript("OnEvent",updatecolor)
---f:RegisterUnitEvent("UNIT_POWER_FREQUENT","player")
-f:RegisterUnitEvent("UNIT_DISPLAYPOWER","player")
---f:RegisterEvent("COMBAT_LOG_EVENT_UNFILTERED")
---f:RegisterEvent("PLAYER_REGEN_ENABLED")
---f:RegisterEvent("PLAYER_REGEN_DISABLED")
-f:RegisterEvent("PLAYER_LOGIN")
-f:Show()
+PlayerFrame:HookScript('OnHide', hideFrame)
+PlayerFrame:HookScript('OnShow', showFrame)
+--f:RegisterUnitEvent("UNIT_DISPLAYPOWER","player")
+--f:RegisterEvent("PLAYER_DEAD")
+--f:RegisterEvent("PLAYER_LOGIN")
+f:RegisterEvent("UPDATE_OVERRIDE_ACTIONBAR")
