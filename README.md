@@ -1,1 +1,2 @@
 # KabRageBar
+Shadowlands version.
