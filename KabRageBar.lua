@@ -112,6 +112,12 @@ f:SetScript("OnEvent", function(self, event, name, ...)
 	if event == "UPDATE_OVERRIDE_ACTIONBAR" then
 		C_Timer.After(1.5, vehicleHider)
 	end
+	if event == "CINEMATIC_START" then
+		C_Timer.After(1.5, hideFrame)
+	end
+	if event == "CINEMATIC_STOP" then
+		C_Timer.After(1.5, showFrame)
+	end
 end)
 
 f:SetScript("OnUpdate", function(self, elapsed)
@@ -144,3 +150,6 @@ PlayerFrame:HookScript('OnShow', showFrame)
 --f:RegisterEvent("PLAYER_DEAD")
 --f:RegisterEvent("PLAYER_LOGIN")
 f:RegisterEvent("UPDATE_OVERRIDE_ACTIONBAR")
+--f:RegisterEvent("PLAY_MOVIE")
+f:RegisterEvent("CINEMATIC_START")
+f:RegisterEvent("CINEMATIC_STOP")
