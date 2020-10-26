@@ -113,7 +113,7 @@ f:SetScript("OnEvent", function(self, event, name, ...)
 		C_Timer.After(1.5, vehicleHider)
 	end
 	if event == "CINEMATIC_START" then
-		C_Timer.After(1.5, hideFrame)
+		C_Timer.After(0.5, hideFrame)
 	end
 	if event == "CINEMATIC_STOP" then
 		C_Timer.After(1.5, showFrame)
