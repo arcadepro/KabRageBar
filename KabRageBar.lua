@@ -3,9 +3,9 @@ local height = 25
 local state = 1
 local xpos = 0
 local ypos = -155
+--
 local covenant = "none" -- (none,nec,ven,kyr,fae)
 local border = "classic" -- (classic, shadowlands)
-
 ---
 
 if border == "shadowlands" then
@@ -112,10 +112,18 @@ f:SetScript("OnEvent", function(self, event, name, ...)
 	if event == "UPDATE_OVERRIDE_ACTIONBAR" then
 		C_Timer.After(1.5, vehicleHider)
 	end
+	if event == "UNIT_ENTERED_VEHICLE" then
+		C_Timer.After(1.5, vehicleHider)
+	end
 	if event == "CINEMATIC_START" then
-		C_Timer.After(0.5, hideFrame)
+		C_Timer.After(0.25, hideFrame)
+--print("start")
 	end
 	if event == "CINEMATIC_STOP" then
+		C_Timer.After(1.5, showFrame)
+--print("stop")
+	end
+	if event == "UNIT_EXITED_VEHICLE" then
 		C_Timer.After(1.5, showFrame)
 	end
 end)
@@ -150,6 +158,8 @@ PlayerFrame:HookScript('OnShow', showFrame)
 --f:RegisterEvent("PLAYER_DEAD")
 --f:RegisterEvent("PLAYER_LOGIN")
 f:RegisterEvent("UPDATE_OVERRIDE_ACTIONBAR")
+f:RegisterEvent("UNIT_ENTERED_VEHICLE")
+f:RegisterEvent("UNIT_EXITED_VEHICLE")
 --f:RegisterEvent("PLAY_MOVIE")
 f:RegisterEvent("CINEMATIC_START")
 f:RegisterEvent("CINEMATIC_STOP")
